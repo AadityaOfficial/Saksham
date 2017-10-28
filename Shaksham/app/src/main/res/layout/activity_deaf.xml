@@ -25,7 +25,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="Learn"
-                android:textSize="40dp"
+                android:textSize="20sp"
+                android:gravity="center"
+                android:textStyle="bold"
                 android:textAlignment="center"
                 android:textColor="@color/textColor"/>
             <LinearLayout
@@ -110,8 +112,10 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:textSize="20sp"
+                    android:gravity="center"
+                    android:textStyle="bold"
                     android:text="Practice"
-                    android:textSize="40dp"
                     android:textAlignment="center"
                     android:textColor="@color/textColor"/>
 

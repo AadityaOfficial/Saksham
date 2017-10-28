@@ -21,12 +21,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:orientation="vertical"
-            android:paddingTop="102dp"
+            android:paddingTop="60dp"
             android:weightSum="2"
             tools:context="com.pri.android.hackdata.activity.FirstActivity">
 
             <ImageView
                 android:id="@+id/imageView"
+                android:src="@mipmap/saksham_logo"
+                android:layout_marginBottom="16dp"
                 android:layout_width="110dp"
                 android:layout_height="100dp"
                 android:layout_gravity="center_horizontal" />
@@ -52,6 +54,7 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_marginBottom="85dp"
+            android:src="@drawable/ic_arrow_forward_white_24dp"
             app:backgroundTint="@color/colorPrimary"/>
 
         <ImageView

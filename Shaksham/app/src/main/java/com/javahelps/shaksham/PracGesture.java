@@ -152,8 +152,8 @@ public class PracGesture extends AppCompatActivity {
     private HashMap<Integer , Model> initializeQuestions() {
         questions = new HashMap<>();
         Model m = new Model();
-        m.question = "Show one";
-        m.answer = "one";
+        m.question = "Show ok";
+        m.answer = "ok";
         questions.put(1, m);
         m = new Model();
         m.question = "Show two";
@@ -234,7 +234,7 @@ public class PracGesture extends AppCompatActivity {
         return encodedImage;
     }
 
-    String url1 = "http://192.168.43.254:8079/image";//ip
+    String url1 = "http://192.168.43.254:8079/asl";//ip
 
     private void sendPic(File f) {
 
@@ -244,7 +244,7 @@ public class PracGesture extends AppCompatActivity {
             Map<String, String> jsonParams = new HashMap<String, String>();
             String image = getStringImage(bitmap);
 
-            jsonParams.put("imageFile", "2" + image);
+            jsonParams.put("imageFile", image);
             jsonParams.put("correctAns", questions.get(quesNo).answer.toString());
             JsonObjectRequest myRequest = new JsonObjectRequest(
                     Request.Method.POST,

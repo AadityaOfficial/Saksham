@@ -121,7 +121,7 @@ public class FindObject extends AppCompatActivity {
                     @Override
                     public void onPermissionGranted() {
 
-                        sendPic(mFile);
+//                        sendPic(mFile);
                     }
 
                     @Override
