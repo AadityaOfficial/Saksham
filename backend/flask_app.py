@@ -16,6 +16,8 @@ from google.cloud import vision
 from PIL import Image
 import urllib
 import time
+from collections import OrderedDict
+from operator import itemgetter
 #api key for google cloud vision api
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/Users/aadityasuri/Desktop/apikey.json"
 
@@ -26,28 +28,82 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 @app.route('/')
 
 
-@app.route('/asl',methods=['GET'])
+@app.route('/asl',methods=['GET','POST'])
 def aslfunct():
-    # urllib.urlretrieve("http://192.168.43.249:8000/getimage", "asl.png")
-    # im=Image.open('asl.png')
-    # result=im.rotate(180)
-    # result.save('asl.png')
-    cap = cv2.VideoCapture(0)
-    while True:
-        time.sleep(2)
-        _, frame = cap.read()
-        cv2.imwrite('asl.png', frame)
-        break
-    cap.release()
-    base_url="https://api-us.faceplusplus.com/humanbodypp/beta/gesture"
-    api_key="?api_key=lUPiZTzUOW7EQiv2r9j2DQ2-LljC5t2g"
-    api_secret="&api_secret=ZcJ4CJs7M-Be7SMCBp061PMIKV0gF8c-"
-    final_url=base_url+api_key+api_secret
-    with open("asl.png","rb") as image_file:
-        value=base64.b64encode(image_file.read())
-    payload = {'image_base64': value}
-    response = requests.post(final_url, data=payload)
-    return response.text
+    if request.method=='GET':
+        # urllib.urlretrieve("http://192.168.43.249:8000/getimage", "asl.png")
+        # im=Image.open('asl.png')
+        # result=im.rotate(180)
+        # result.save('asl.png')
+        cap = cv2.VideoCapture(0)
+        while True:
+            time.sleep(2)
+            _, frame = cap.read()
+            cv2.imwrite('asl.png', frame)
+            break
+        cap.release()
+        base_url="https://api-us.faceplusplus.com/humanbodypp/beta/gesture"
+        api_key="?api_key=lUPiZTzUOW7EQiv2r9j2DQ2-LljC5t2g"
+        api_secret="&api_secret=ZcJ4CJs7M-Be7SMCBp061PMIKV0gF8c-"
+        final_url=base_url+api_key+api_secret
+        with open("asl.png","rb") as image_file:
+            value=base64.b64encode(image_file.read())
+        payload = {'image_base64': value}
+        response = requests.post(final_url, data=payload)
+        jsondata=json.loads(response.text)
+        data = jsondata['hands'][0]['gesture']
+        print data
+        d = OrderedDict(sorted(data.items(), key=itemgetter(1) , reverse=True) )
+        ans = d.keys()[0]
+        print(ans)
+        return jsonify({'answer':ans}) 
+    
+    elif request.method == 'POST':
+        # Getting data in the form of JSON with specifies keys
+        data=request.get_json(force=True)
+        newFile=data['imageFile']
+        correct_ans = data['correctAns']
+        # the imageFile key in the JSON has the value which is base64 encoded form of image with required option 
+        # 0 in the start indicated its a digit image, send the value to i
+        # 1 in the start indicates its a character image, send the value to i
+        # 2 in the start indicates its object in the image, send the value to i
+       
+        # Decoding the base64 string ie the image
+        imgdata = base64.b64decode(newFile)
+        
+        # Saving the retrieved image in root directory
+        filename = 'asl.png'
+        with open(filename, 'wb') as f:
+            f.write(imgdata)
+
+        img = cv2.imread('asl.png')
+        img = cv2.pyrUp(img)
+        img = cv2.pyrUp(img)
+        print(img.shape)
+        cv2.imwrite('asl.png', img)
+
+        base_url="https://api-us.faceplusplus.com/humanbodypp/beta/gesture"
+        api_key="?api_key=lUPiZTzUOW7EQiv2r9j2DQ2-LljC5t2g"
+        api_secret="&api_secret=ZcJ4CJs7M-Be7SMCBp061PMIKV0gF8c-"
+        final_url=base_url+api_key+api_secret
+        with open("asl.png","rb") as image_file:
+            value=base64.b64encode(image_file.read())
+        payload = {'image_base64': value}
+        response = requests.post(final_url, data=payload)
+        print response.text
+        jsondata=json.loads(response.text)
+        data = jsondata['hands'][0]['gesture']
+        print data
+        d = OrderedDict(sorted(data.items(), key=itemgetter(1) , reverse=True) )
+        ans = d.keys()[0]
+        print(ans)
+
+        if ans == correct_ans:
+            testNotif(77,'true')
+        else:
+            testNotif(77,'false')    
+        
+        return "{'status':'Success'}"
 
 
 @app.route('/image', methods=['GET', 'POST'])
@@ -75,7 +131,7 @@ def imageFunction():
             f.write(imgdata)
         # Retrieving image from root directory
         img = cv2.imread('some_image.png', 0)
-        
+        print(img.shape)
         # if i==0 we call the detection of digit function
         if i == '0':
            val = detect_images(img)
@@ -103,7 +159,7 @@ def detect_images(img):
     img = cv2.resize(img, (28,28))
     
     #Loading the trained model
-    model = keras.models.load_model('/Users/aadityasuri/Documents/hackdata/HackData/models/MNIST_Model.h5')
+    model = keras.models.load_model('/Users/aadityasuri/Documents/Vihaan/Vidya-App/models/MNIST_model.h5')
     
     #Predicting the result for the inout image
     pred = model.predict_proba(img.reshape(1,28,28,1))
@@ -159,8 +215,8 @@ def detect_object(img, correct_ans):
 
 def testNotif(i, val):
     #Sends notification to the app with calculated result
-    push_service = FCMNotification(api_key="AAAAoroxYPI:APA91bHpnCDdaqNnCPLDPJ83v_RypNglyzBZmplMn_Qay_XCYBlCDUUTgG9pxwKL0xmgUA2GO1i-BZzBVUZ93X6Dj7cCHW7V-QfRigJRN7ZBgO9sphDW6czbc_rHVL0M8Z3RURcrH-Qi")
-    registration_id = "ea8cVELQ8m8:APA91bFHNItw5DrXPJ3us7RST_fl_Sv38nGA4Q0YF0d1ryn5j3U8mk6rxEKR7F3ux9sd3-cYdF29gBRGHeNopM24KYKAx_wVkeXJNjzqbHh7wlgGLbqTRWml9l7Om6aYDWRd9y8WH_xc"
+    push_service = FCMNotification(api_key="AAAAupVl040:APA91bHF4i3_t-8vnZgES2pNDHHtx7EDGGQ_t6lRWMc5QA3ehSVkJgGJIHXVgtr1ZbkBGpmXAaWRsfwCkT-pWX0PzXDppYrMiXCAQ1dRVNq6Cv0Uiw_j8HfkDYhGQIEmxOElfJ0DdtDm")
+    registration_id = "c4zjdHKlkjo:APA91bFWi-kFkoxF1l-AYZHmX4XVqEvcc2B5UHYOhLX6ThM4p0PHNsGYiyDvIky4kAHgHFNZLGwPDDxuKg6gOLVsNA74GCYhw5xHRgzTDDl659MUIwp0Gzv515gJbavS66hgYeKnXVVj"
 
     data_message = {
         "ans":val, 
